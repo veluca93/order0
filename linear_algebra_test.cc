@@ -76,12 +76,14 @@ TEST(LinearAlgebraTest, EigsTestSmall) {
 }
 
 TEST(LinearAlgebraTest, EigsTest) {
-  std::mt19937 rng;
-  Matrix m = Matrix::Rand(rng, 20).make_symmetric();
-  auto [eigvals, eigvecs] = m.eigs();
-  Matrix diag = Matrix::Diag(eigvals);
-  CheckMatrixNear(Matrix::Eye(20), eigvecs * eigvecs.transpose());
-  CheckMatrixNear(m, eigvecs * diag * eigvecs.transpose());
+  for (size_t i = 1; i < 24; i++) {
+    std::mt19937 rng;
+    Matrix m = Matrix::Rand(rng, i).make_symmetric();
+    auto [eigvals, eigvecs] = m.eigs();
+    Matrix diag = Matrix::Diag(eigvals);
+    CheckMatrixNear(Matrix::Eye(i), eigvecs * eigvecs.transpose());
+    CheckMatrixNear(m, eigvecs * diag * eigvecs.transpose());
+  }
 }
 
 TEST(LinearAlgebraTest, TestMakeSymmetric) {

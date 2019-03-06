@@ -4,11 +4,12 @@
 #define E(i, j) eigvals.data[(i)*N + (j)]
 
 std::pair<Vector, Matrix> Matrix::eigs() const {
+  // TODO: this is terribly slow (N^5) and not very precise for 24+ dimensions.
+  // Improve it.
   assert(is_symmetric());
   Matrix eigvecs = Matrix::Eye(N);
   Matrix eigvals = *this;
-  size_t iter_recalc = 0;
-  for (size_t _ = 0; _ < N * 30; _++) {
+  for (size_t _ = 0; _ < std::max(30UL, N) * N; _++) {
     size_t maxi = 0, maxj = 0;
     double val = 0;
     double norm = 0;
@@ -53,12 +54,7 @@ std::pair<Vector, Matrix> Matrix::eigs() const {
     Vector colj = eigvecs.col(maxj);
     eigvecs.col(maxi) = c * coli - s * colj;
     eigvecs.col(maxj) = s * coli + c * colj;
-    // Hackish hack to fix numerical instability issues.
-    if (iter_recalc++ > 25) {
-      iter_recalc = 0;
-      eigvals = eigvecs.transpose() * (*this) * eigvecs;
-    }
+    eigvals = eigvecs.transpose() * (*this) * eigvecs;
   }
-  eigvals = eigvecs.transpose() * (*this) * eigvecs;
   return {eigvals.diag(), std::move(eigvecs)};
 }
