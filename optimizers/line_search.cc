@@ -51,7 +51,6 @@ public:
       last_best = best_val;
       best_val = next_val;
       best = next;
-      PrintBest(best, best_val);
     }
   }
 };

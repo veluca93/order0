@@ -32,7 +32,6 @@ public:
     while (true) {
       std::sort(points.begin(), points.end(),
                 [](const auto &a, const auto &b) { return a.first < b.first; });
-      PrintBest(points[0].second, points[0].first);
       Point centroid(0.0, dim);
       // Skip worst point.
       for (size_t j = 0; j < dim; j++) {

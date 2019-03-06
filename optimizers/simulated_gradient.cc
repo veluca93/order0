@@ -25,7 +25,6 @@ public:
     size_t iter = 0;
     while (b1pow *= kB1, b2pow *= kB2, ++iter) {
       double val = runner->Run({p})[0];
-      PrintBest(p, val);
       std::vector<Point> gradient_helpers(dim, p);
       for (size_t i = 0; i < dim; i++) {
         gradient_helpers[i][i] += kGradientStep;

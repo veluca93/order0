@@ -31,12 +31,25 @@ double EvaluatePoint(const std::string &path, const Point &point) {
 std::vector<double> Runner::Run(const std::vector<Point> &points) {
   std::vector<double> ret(points.size(), 0);
 
-  num_runs += points.size();
-
-  //#pragma omp parallel for
+#pragma omp parallel for
   for (size_t i = 0; i < points.size(); i++) {
     ret[i] = EvaluatePoint(path, points[i]);
   }
+
+  num_runs += points.size();
+
+  for (size_t i = 0; i < points.size(); i++) {
+    if (ret[i] < best_val) {
+      best_val = ret[i];
+      best = points[i];
+    }
+  }
+
+  fprintf(stderr, "%12lu evals, best: %8.4f at ", num_runs, best_val);
+  for (size_t i = 0; i < best.size(); i++) {
+    fprintf(stderr, " %12.8f", best[i]);
+  }
+  fprintf(stderr, "\n");
 
   return ret;
 }

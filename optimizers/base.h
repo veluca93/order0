@@ -26,13 +26,6 @@ public:
   }
 
 protected:
-  void PrintBest(const Point &pt, double value) {
-    fprintf(stderr, "%12lu evals, best: %8.4f at ", runner->NumRuns(), value);
-    for (size_t i = 0; i < pt.size(); i++) {
-      fprintf(stderr, " %12.8f", pt[i]);
-    }
-    fprintf(stderr, "\n");
-  }
   Runner *runner;
   size_t dim;
 
