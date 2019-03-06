@@ -1,7 +1,10 @@
+#pragma once
 #include <random>
 #include <valarray>
 
 using Vector = std::valarray<double>;
+
+inline double Norm(const Vector &vec) { return std::sqrt((vec * vec).sum()); }
 
 class Matrix {
 public:

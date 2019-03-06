@@ -31,7 +31,7 @@ double EvaluatePoint(const std::string &path, const Point &point) {
 std::vector<double> Runner::Run(const std::vector<Point> &points) {
   std::vector<double> ret(points.size(), 0);
 
-#pragma omp parallel for
+  //#pragma omp parallel for
   for (size_t i = 0; i < points.size(); i++) {
     ret[i] = EvaluatePoint(path, points[i]);
   }
