@@ -88,7 +88,9 @@ public:
   Vector operator*(const Vector &x) const {
     Vector ret(N);
     for (size_t i = 0; i < N; i++) {
-      ret[i] = (Vector((*this)[i]) * x).sum();
+      for (size_t j = 0; j < N; j++) {
+        ret[i] += (*this)(i, j) * x[j];
+      }
     }
     return ret;
   }
@@ -96,7 +98,11 @@ public:
   Matrix operator*(const Matrix &other) {
     Matrix ret(N);
     for (size_t i = 0; i < N; i++) {
-      ret.col(i) = (*this) * other.col(i);
+      for (size_t j = 0; j < N; j++) {
+        for (size_t k = 0; k < N; k++) {
+          ret(i, j) += (*this)(i, k) * other(k, j);
+        }
+      }
     }
     return ret;
   }
