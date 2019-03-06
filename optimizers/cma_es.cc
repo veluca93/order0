@@ -5,7 +5,7 @@ class CMAES : public Optimizer {
 public:
   using Optimizer::Optimizer;
   using PointWithScore = std::pair<double, Point>;
-  static constexpr double kInitialSigma = 0.3;
+  static constexpr double kInitialSigma = 1.0;
 
   void Run() override {
     std::vector<PointWithScore> points;
@@ -110,6 +110,7 @@ public:
       // This should be a N * mu matrix, but is N*N here to simplify
       // implementation. TODO: this raises the complexity. Change it when
       // rectangular matrices are implemented.
+      // TODO: this is very broken if mu is more than N.
       Matrix artmp(N);
       for (size_t i = 0; i < size_t(mu); i++) {
         artmp.col(i) = (points[i].second - xold) / sigma;
