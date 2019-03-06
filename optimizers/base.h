@@ -8,6 +8,7 @@ class Optimizer {
 public:
   virtual void Run() = 0;
   Optimizer(Runner *runner, size_t dim) : runner(runner), dim(dim) {}
+  virtual ~Optimizer() = default;
 
   static std::unique_ptr<Optimizer> Create(const std::string &name,
                                            Runner *runner, size_t dim) {
