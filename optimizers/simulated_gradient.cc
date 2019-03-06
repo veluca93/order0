@@ -16,9 +16,9 @@ public:
   static constexpr double kEps = 1e-8;
 
   void Run() override {
-    Point p(dim, 0.0);
-    Point momentum(dim, 0.0);
-    Point variance(dim, 0.0);
+    Point p(0.0, dim);
+    Point momentum(0.0, dim);
+    Point variance(0.0, dim);
     double b1pow = 1;
     double b2pow = 1;
 
@@ -31,7 +31,7 @@ public:
         gradient_helpers[i][i] += kGradientStep;
       }
       std::vector<double> vals = runner->Run(gradient_helpers);
-      Point estimated_gradient(dim, val);
+      Point estimated_gradient(val, dim);
       for (size_t i = 0; i < dim; i++) {
         estimated_gradient[i] = (vals[i] - val) * kInvGradientStep;
         if (estimated_gradient[i] > kGradientClip)
@@ -41,19 +41,15 @@ public:
       }
 
       // ADAM
-      for (size_t i = 0; i < dim; i++) {
-        momentum[i] = kB1 * momentum[i] + (1 - kB1) * estimated_gradient[i];
-        variance[i] = kB2 * variance[i] +
-                      (1 - kB2) * estimated_gradient[i] * estimated_gradient[i];
-      }
+      momentum = kB1 * momentum + (1 - kB1) * estimated_gradient;
+      variance =
+          kB2 * variance + (1 - kB2) * estimated_gradient * estimated_gradient;
       double m_scale = 1.0 / (1.0 - b1pow);
       double v_scale = 1.0 / (1.0 - b2pow);
 
       const double learn_rate = kLearnRate / pow(iter, kLearnRateDecayExp);
-      for (size_t i = 0; i < dim; i++) {
-        p[i] -= learn_rate * momentum[i] * m_scale /
-                (std::sqrt(variance[i] * v_scale) + kEps);
-      }
+      p -= learn_rate * momentum * m_scale /
+           (std::sqrt(variance * v_scale) + kEps);
     }
   }
 };

@@ -1,8 +1,9 @@
 #pragma once
+#include "linear_algebra.h"
 #include <string>
 #include <vector>
 
-using Point = std::vector<double>;
+using Point = Vector;
 
 class Runner {
 public:

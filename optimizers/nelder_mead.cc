@@ -11,9 +11,9 @@ public:
 
   void Run() override {
     std::vector<PointWithScore> points;
-    points.push_back({0, Point(dim, 0.0)});
+    points.push_back({0, Point(0.0, dim)});
     for (size_t i = 0; i < dim; i++) {
-      Point p(dim, 0.0);
+      Point p(0.0, dim);
       p[i] = 1.0;
       points.push_back({0, p});
     }
@@ -30,24 +30,17 @@ public:
     evaluate_all_points();
     double inv_dim = 1.0 / dim;
     while (true) {
-      std::sort(points.begin(), points.end());
+      std::sort(points.begin(), points.end(),
+                [](const auto &a, const auto &b) { return a.first < b.first; });
       PrintBest(points[0].second, points[0].first);
-      Point centroid(dim, 0);
+      Point centroid(0.0, dim);
       // Skip worst point.
       for (size_t j = 0; j < dim; j++) {
-        const auto &p = points[j];
-        for (size_t i = 0; i < dim; i++) {
-          centroid[i] += p.second[i];
-        }
+        centroid += points[j].second;
       }
-      for (size_t i = 0; i < dim; i++) {
-        centroid[i] *= inv_dim;
-      }
+      centroid *= inv_dim;
       // Reflection
-      Point reflected = centroid;
-      for (size_t i = 0; i < dim; i++) {
-        reflected[i] += kAlpha * (reflected[i] - points.back().second[i]);
-      }
+      Point reflected = centroid + kAlpha * (centroid - points.back().second);
       double rval = runner->Run({reflected})[0];
       if (points.front().first <= rval && rval < points[dim - 1].first) {
         points.back().first = rval;
@@ -56,10 +49,7 @@ public:
       }
       // Expansion
       if (rval < points.front().first) {
-        Point expanded = centroid;
-        for (size_t i = 0; i < dim; i++) {
-          expanded[i] += kGamma * (reflected[i] - centroid[i]);
-        }
+        Point expanded = centroid + kGamma * (reflected - centroid);
         double eval = runner->Run({expanded})[0];
         if (eval < rval) {
           points.back().first = eval;
@@ -72,10 +62,7 @@ public:
         continue;
       }
       // Contraction
-      Point contracted = centroid;
-      for (size_t i = 0; i < dim; i++) {
-        contracted[i] += kRho * (points.back().second[i] - centroid[i]);
-      }
+      Point contracted = centroid + kRho * (points.back().second - centroid);
       double cval = runner->Run({contracted})[0];
       if (cval < points.back().first) {
         points.back().first = cval;
@@ -84,11 +71,8 @@ public:
       }
       // Shrink
       for (size_t j = 1; j < points.size(); j++) {
-        for (size_t i = 0; i < dim; i++) {
-          points[j].second[i] =
-              points.front().second[i] +
-              kSigma * (points[j].second[i] - points.front().second[i]);
-        }
+        points[j].second = points.front().second +
+                           kSigma * (points[j].second - points.front().second);
       }
       evaluate_all_points();
     }

@@ -4,7 +4,7 @@ class LineSearch : public Optimizer {
 public:
   using Optimizer::Optimizer;
   void Run() override {
-    Point best(dim, 0.0);
+    Point best(0.0, dim);
     double best_val = runner->Run({best})[0];
     double last_best = 0;
     double lim1 = 1e-2;
