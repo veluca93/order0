@@ -177,7 +177,9 @@ TEST(LinearAlgebraTest, HessQRTest) {
   for (size_t N = 1; N < 300; N += 30) {
     std::mt19937 rng;
     Matrix m = Matrix::Rand(rng, N).hessemberg().first;
-    auto [A, B, R] = m.hess_qr();
+    Matrix R = m;
+    std::vector<double> A, B;
+    R.hess_qr(&A, &B);
     ASSERT_EQ(A.size(), N - 1);
     ASSERT_EQ(B.size(), N - 1);
     // Check that R is upper triangular.

@@ -101,8 +101,8 @@ public:
   std::pair<Vector, Matrix> eigs() const;
 
   // QR decomposition for Hessemberg matrices, returns the used householder
-  // vectors and the matrix R.
-  std::tuple<std::vector<double>, std::vector<double>, Matrix> hess_qr() const;
+  // vectors and modifies the matrix in-place.
+  void hess_qr(std::vector<double> *A, std::vector<double> *B);
 
   Matrix transpose() const {
     Matrix ret(M, N);
