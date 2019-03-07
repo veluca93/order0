@@ -5,7 +5,7 @@
 class MultivariateNormalDistribution {
 public:
   MultivariateNormalDistribution(Vector mean, const Matrix &covariance)
-      : mean(std::move(mean)), mul(0) {
+      : mean(std::move(mean)), mul(0, 0) {
     auto [eigenval, eigenvec] = covariance.make_symmetric().eigs();
     mul = eigenvec * Matrix::Diag(std::sqrt(eigenval));
   }

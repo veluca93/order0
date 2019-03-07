@@ -5,7 +5,7 @@ class CMAES : public Optimizer {
 public:
   using Optimizer::Optimizer;
   using PointWithScore = std::pair<double, Point>;
-  static constexpr double kInitialSigma = 1.0;
+  static constexpr double kInitialSigma = 2.0;
 
   void Run() override {
     std::vector<PointWithScore> points;
@@ -108,25 +108,19 @@ public:
 
       // Adapt C
       // This should be a N * mu matrix, but is N*N here to simplify
-      // implementation. TODO: this raises the complexity. Change it when
-      // rectangular matrices are implemented.
-      // TODO: this is very broken if mu is more than N.
-      Matrix artmp(N);
+      // implementation.
+      Matrix artmp(N, mu);
       for (size_t i = 0; i < size_t(mu); i++) {
         artmp.col(i) = (points[i].second - xold) / sigma;
       }
 
       // N*N matrix version of pc.
-      Matrix pcm(N);
+      Matrix pcm(N, 1);
       pcm.col(0) = pc;
-
-      // N-sized vector for weights.
-      Vector padded_weights(N);
-      padded_weights[std::slice(0, size_t(mu), 1)] = weights;
 
       C = C * (1 - c1 - cmu) +
           (pcm * pcm.transpose() + C * (1 - hsig) * cc * (2 - cc)) * c1 +
-          artmp * Matrix::Diag(padded_weights) * artmp.transpose() * cmu;
+          artmp * Matrix::Diag(weights) * artmp.transpose() * cmu;
 
       // Adapt sigma
       sigma = sigma * std::exp((cs / damps) * (Norm(ps) / chiN - 1));

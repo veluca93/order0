@@ -11,16 +11,25 @@ int main() {
   double value = 0;
   double x = vars[0];
   double y = vars[1];
-  if (x < -10)
+  double penalty = 0;
+  if (x < -10) {
+    penalty += -10 - x;
     x = -10;
-  if (x > 10)
+  }
+  if (x > 10) {
+    penalty += x - 10;
     x = 10;
-  if (y < -10)
+  }
+  if (y < -10) {
+    penalty += -10 - y;
     y = -10;
-  if (y > 10)
+  }
+  if (y > 10) {
+    penalty += y - 10;
     y = 10;
+  }
   value = std::sin(x) * std::cos(y);
   value *= exp(std::abs(1 - std::sqrt(x * x + y * y) / M_PI));
   value = -std::abs(value);
-  printf("%f\n", value);
+  printf("%f\n", value + penalty);
 }

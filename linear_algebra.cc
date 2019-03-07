@@ -1,5 +1,4 @@
 #include "linear_algebra.h"
-#include <assert.h>
 
 #define E(i, j) eigvals.data[(i)*N + (j)]
 
