@@ -10,7 +10,8 @@ inline double Norm(const Vector &vec) { return std::sqrt((vec * vec).sum()); }
 
 class Matrix {
 public:
-  explicit Matrix(size_t N, size_t M) : data(N * M), N(N), M(M) {}
+  explicit Matrix(size_t N, size_t M)
+      : data(N * M), N(N), M(M), rowi(M), rowip(M), coli(N), colip(N) {}
 
   static Matrix Eye(size_t N) { return Diag(Vector(1.0, N)); }
 
@@ -71,8 +72,8 @@ public:
     double a2 = 2 * a * a;
     double ab = 2 * a * b;
     double b2 = 2 * b * b;
-    Vector rowi = (*this)[i];
-    Vector rowip = (*this)[i + 1];
+    rowi = (*this)[i];
+    rowip = (*this)[i + 1];
     (*this)[i] -= a2 * rowi + ab * rowip;
     (*this)[i + 1] -= ab * rowi + b2 * rowip;
   }
@@ -85,8 +86,8 @@ public:
     double a2 = 2 * a * a;
     double ab = 2 * a * b;
     double b2 = 2 * b * b;
-    Vector coli = col(i);
-    Vector colip = col(i + 1);
+    coli = col(i);
+    colip = col(i + 1);
     col(i) -= a2 * coli + ab * colip;
     col(i + 1) -= ab * coli + b2 * colip;
   }
@@ -207,4 +208,10 @@ private:
   Vector data;
   size_t N;
   size_t M;
+
+  // Temporary storage to avoid reallocations.
+  Vector rowi;
+  Vector rowip;
+  Vector coli;
+  Vector colip;
 };
