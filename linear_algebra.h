@@ -10,8 +10,7 @@ inline double Norm(const Vector &vec) { return std::sqrt((vec * vec).sum()); }
 
 class Matrix {
 public:
-  explicit Matrix(size_t N, size_t M)
-      : data(N * M), N(N), M(M), rowi(M), rowip(M), coli(N), colip(N) {}
+  explicit Matrix(size_t N, size_t M) : data(N * M), N(N), M(M) {}
 
   static Matrix Eye(size_t N) { return Diag(Vector(1.0, N)); }
 
@@ -72,10 +71,12 @@ public:
     double a2 = 2 * a * a;
     double ab = 2 * a * b;
     double b2 = 2 * b * b;
-    rowi = (*this)[i];
-    rowip = (*this)[i + 1];
-    (*this)[i] -= a2 * rowi + ab * rowip;
-    (*this)[i + 1] -= ab * rowi + b2 * rowip;
+    for (size_t k = 0; k < M; k++) {
+      double ri = (*this)(i, k);
+      double rip = (*this)(i + 1, k);
+      (*this)(i, k) -= a2 * ri + ab * rip;
+      (*this)(i + 1, k) -= ab * ri + b2 * rip;
+    }
   }
 
   void rhouseholder(const Matrix &v) {
@@ -86,10 +87,12 @@ public:
     double a2 = 2 * a * a;
     double ab = 2 * a * b;
     double b2 = 2 * b * b;
-    coli = col(i);
-    colip = col(i + 1);
-    col(i) -= a2 * coli + ab * colip;
-    col(i + 1) -= ab * coli + b2 * colip;
+    for (size_t k = 0; k < N; k++) {
+      double ci = (*this)(k, i);
+      double cip = (*this)(k, i + 1);
+      (*this)(k, i) -= a2 * ci + ab * cip;
+      (*this)(k, i + 1) -= ab * ci + b2 * cip;
+    }
   }
 
   std::pair<Matrix, Matrix> hessemberg() const;
@@ -208,10 +211,4 @@ private:
   Vector data;
   size_t N;
   size_t M;
-
-  // Temporary storage to avoid reallocations.
-  Vector rowi;
-  Vector rowip;
-  Vector coli;
-  Vector colip;
 };
