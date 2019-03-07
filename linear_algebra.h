@@ -1,6 +1,7 @@
 #pragma once
 #include <assert.h>
 #include <random>
+#include <tuple>
 #include <valarray>
 
 using Vector = std::valarray<double>;
@@ -62,7 +63,42 @@ public:
     return const_cast<Matrix *>(this)->col(i);
   }
 
+  void lhouseholder(const Matrix &v) {
+    *this -= (v * 2) * (v.transpose() * *this);
+  }
+
+  void lhouseholder2(size_t i, double a, double b) {
+    double a2 = 2 * a * a;
+    double ab = 2 * a * b;
+    double b2 = 2 * b * b;
+    Vector rowi = (*this)[i];
+    Vector rowip = (*this)[i + 1];
+    (*this)[i] -= a2 * rowi + ab * rowip;
+    (*this)[i + 1] -= ab * rowi + b2 * rowip;
+  }
+
+  void rhouseholder(const Matrix &v) {
+    *this -= (*this * v) * (v.transpose() * 2);
+  }
+
+  void rhouseholder2(size_t i, double a, double b) {
+    double a2 = 2 * a * a;
+    double ab = 2 * a * b;
+    double b2 = 2 * b * b;
+    Vector coli = col(i);
+    Vector colip = col(i + 1);
+    col(i) -= a2 * coli + ab * colip;
+    col(i + 1) -= ab * coli + b2 * colip;
+  }
+
+  std::pair<Matrix, Matrix> hessemberg() const;
+  std::pair<Matrix, Matrix> trid() const;
+  std::pair<Matrix, Matrix> qr() const;
   std::pair<Vector, Matrix> eigs() const;
+
+  // QR decomposition for Hessemberg matrices, returns the used householder
+  // vectors and the matrix R.
+  std::tuple<std::vector<double>, std::vector<double>, Matrix> hess_qr() const;
 
   Matrix transpose() const {
     Matrix ret(M, N);
@@ -120,8 +156,8 @@ public:
     assert(M == other.N);
     Matrix ret(N, other.M);
     for (size_t i = 0; i < N; i++) {
-      for (size_t j = 0; j < other.M; j++) {
-        for (size_t k = 0; k < M; k++) {
+      for (size_t k = 0; k < M; k++) {
+        for (size_t j = 0; j < other.M; j++) {
           ret(i, j) += (*this)(i, k) * other(k, j);
         }
       }
@@ -155,6 +191,16 @@ public:
     Matrix ret = *this;
     ret += other;
     return ret;
+  }
+
+  void Print(const char *name) const {
+    fprintf(stderr, "%lux%lu%s%s\n", N, M, name ? ": " : "", name ? name : "");
+    for (size_t i = 0; i < N; i++) {
+      for (size_t j = 0; j < M; j++) {
+        fprintf(stderr, "%8.4f ", (*this)(i, j));
+      }
+      fprintf(stderr, "\n");
+    }
   }
 
 private:

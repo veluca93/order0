@@ -1,59 +1,124 @@
 #include "linear_algebra.h"
 
-#define E(i, j) eigvals.data[(i)*N + (j)]
+namespace {
+constexpr double kEps = 1e-6;
+}
+
+std::pair<Matrix, Matrix> Matrix::trid() const {
+  assert(is_symmetric());
+  return hessemberg();
+}
+
+std::pair<Matrix, Matrix> Matrix::hessemberg() const {
+  Matrix hess = *this;
+  Matrix base = Matrix::Eye(N);
+  for (size_t k = 0; k < N - 1; k++) {
+    double s = 0;
+    for (size_t i = k + 1; i < N; i++) {
+      s += hess(i, k) * hess(i, k);
+    }
+    s = std::sqrt(s);
+    if (s < kEps) {
+      continue;
+    }
+    double sign = hess(k + 1, k) < 0 ? -1 : 1;
+    double z = 0.5 * (1 + sign * hess(k + 1, k) / s);
+    Matrix v(N, 1);
+    v(k + 1, 0) = std::sqrt(z);
+    for (size_t i = k + 2; i < N; i++) {
+      v(i, 0) = sign * hess(i, k) / (2 * v(k + 1, 0) * s);
+    }
+    base.rhouseholder(v);
+    hess.rhouseholder(v);
+    hess.lhouseholder(v);
+  }
+  return {hess, base};
+}
+
+std::pair<Matrix, Matrix> Matrix::qr() const {
+  Matrix R = *this;
+  Matrix Q = Matrix::Eye(N);
+  for (size_t k = 0; k < N - 1; k++) {
+    double xnorm = 0;
+    for (size_t i = k; i < N; i++) {
+      xnorm += R(i, k) * R(i, k);
+    }
+    xnorm = std::sqrt(xnorm);
+    double sign = R(k, k) < 0 ? -1 : 1;
+    Matrix v(N, 1);
+    v(k, 0) = R(k, k) + sign * xnorm;
+    for (size_t i = k + 1; i < N; i++) {
+      v(i, 0) = R(i, k);
+    }
+    v /= Norm(v.col(0));
+    Q.rhouseholder(v);
+    R.lhouseholder(v);
+  }
+  return {Q, R};
+}
+
+std::tuple<std::vector<double>, std::vector<double>, Matrix>
+Matrix::hess_qr() const {
+  Matrix R = *this;
+  std::vector<double> A(N - 1), B(N - 1);
+  for (size_t k = 0; k < N - 1; k++) {
+    double xnorm = 0;
+    xnorm += R(k, k) * R(k, k);
+    xnorm += R(k + 1, k) * R(k + 1, k);
+    xnorm = std::sqrt(xnorm);
+    double sign = R(k, k) < 0 ? -1 : 1;
+    double a = R(k, k) + sign * xnorm;
+    double b = R(k + 1, k);
+    double norm = std::sqrt(a * a + b * b);
+    A[k] = a / norm;
+    B[k] = b / norm;
+    R.lhouseholder2(k, A[k], B[k]);
+  }
+  return {std::move(A), std::move(B), std::move(R)};
+}
 
 std::pair<Vector, Matrix> Matrix::eigs() const {
-  // TODO: this is terribly slow (N^5) and not very precise for 24+ dimensions.
-  // Improve it.
-  assert(is_symmetric());
-  Matrix eigvecs = Matrix::Eye(N);
-  Matrix eigvals = *this;
-  for (size_t _ = 0; _ < std::max(30UL, N) * N; _++) {
-    size_t maxi = 0, maxj = 0;
-    double val = 0;
-    double norm = 0;
-    for (size_t i = 0; i < N; i++) {
-      for (size_t j = i + 1; j < N; j++) {
-        if (std::abs(E(i, j)) > val) {
-          maxi = i;
-          maxj = j;
-          val = std::abs(E(i, j));
+  assert(is_square());
+  bool sym = is_symmetric();
+  auto hs = hessemberg();
+  Matrix eigvecs = hs.second;
+  Matrix eigvals = hs.first;
+  // Shifted QR method.
+  while (true) {
+    double offd_norm = 0;
+    if (sym) {
+      for (size_t i = 0; i < N - 1; i++) {
+        offd_norm = std::max(offd_norm, std::abs(eigvals(i, i + 1)));
+      }
+    } else {
+      for (size_t i = 0; i < N; i++) {
+        if (i != 0) {
+          offd_norm = std::max(offd_norm, std::abs(eigvals(i, i - 1)));
         }
-        norm += E(i, j) * E(i, j);
+        for (size_t j = i + 1; j < N; j++) {
+          offd_norm = std::max(offd_norm, std::abs(eigvals(i, j)));
+        }
       }
     }
-    if (norm < 1e-10)
+    if (offd_norm < kEps)
       break;
-    double w = (E(maxj, maxj) - E(maxi, maxi)) / (2 * E(maxi, maxj));
-    double t;
-    if (w > 0) {
-      t = 1.0 / (std::sqrt(w * w + 1) + w);
-    } else {
-      t = -1.0 / (std::sqrt(w * w + 1) - w);
+    size_t not_found = N - 1;
+    while (not_found > 0 &&
+           std::abs(eigvals(not_found, not_found - 1)) < kEps) {
+      not_found--;
     }
-    double sqrt1t2 = std::sqrt(1 + t * t);
-    double s = t / sqrt1t2;
-    double c = 1 / sqrt1t2;
-    double tau = (sqrt1t2 + 1) / (sqrt1t2 + 1 + t * t);
-    // Update eigvals
-    E(maxi, maxi) += t * val;
-    E(maxj, maxj) -= t * val;
-    E(maxi, maxj) = 0;
-    E(maxj, maxi) = 0;
-    for (size_t k = 0; k < N; k++) {
-      if (k == maxi || k == maxj)
-        continue;
-      double aik = E(maxi, k);
-      double ajk = E(maxj, k);
-      E(k, maxi) = E(maxi, k) = tau * aik - s * ajk;
-      E(k, maxj) = E(maxj, k) = tau * ajk + s * aik;
+    assert(N != 1);
+    double mu = eigvals(not_found, not_found);
+    for (size_t i = 0; i < N; i++) {
+      eigvals(i, i) -= mu;
     }
-    // Update eigvecs
-    Vector coli = eigvecs.col(maxi);
-    Vector colj = eigvecs.col(maxj);
-    eigvecs.col(maxi) = c * coli - s * colj;
-    eigvecs.col(maxj) = s * coli + c * colj;
-    eigvals = eigvecs.transpose() * (*this) * eigvecs;
+    auto [A, B, R] = eigvals.hess_qr();
+    eigvals = std::move(R);
+    for (size_t i = 0; i < N - 1; i++) {
+      eigvecs.rhouseholder2(i, A[i], B[i]);
+      eigvals.rhouseholder2(i, A[i], B[i]);
+    }
+    eigvals += Matrix::Eye(N) * mu;
   }
   return {eigvals.diag(), std::move(eigvecs)};
 }
