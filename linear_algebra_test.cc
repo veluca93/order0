@@ -9,7 +9,7 @@ void CheckMatrixNear(const Matrix &a, const Matrix &b, double tol = 1e-5) {
   EXPECT_EQ(a.size(), b.size());
   if (a.size() != b.size())
     return;
-  size_t N = a.size();
+  size_t N = a.size().first;
   double max_err = 0;
   for (size_t i = 0; i < N; i++) {
     max_err = std::max(max_err, std::abs(Vector(a[i]) - Vector(b[i])).max());
@@ -35,7 +35,7 @@ TEST(LinearAlgebraTest, MatrixSumDiffInverse) {
 }
 
 TEST(LinearAlgebraTest, MatrixVectorProduct) {
-  Matrix m(3);
+  Matrix m(3, 3);
   m[0] = {1, 2, 3};
   m[1] = {3, 4, 5};
   m[2] = {5, 6, 7};
@@ -64,7 +64,7 @@ TEST(LinearAlgebraTest, MatrixEyeProduct) {
 
 TEST(LinearAlgebraTest, EigsTestSmall) {
   std::mt19937 rng;
-  Matrix m(4);
+  Matrix m(4, 4);
   m[0] = {2, -1, -1, 0};
   m[1] = {-1, 3, -1, -1};
   m[2] = {-1, -1, 3, -1};

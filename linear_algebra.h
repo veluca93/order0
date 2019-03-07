@@ -116,7 +116,7 @@ public:
     return ret;
   }
 
-  Matrix operator*(const Matrix &other) {
+  Matrix operator*(const Matrix &other) const {
     assert(M == other.N);
     Matrix ret(N, other.M);
     for (size_t i = 0; i < N; i++) {

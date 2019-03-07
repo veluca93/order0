@@ -10,6 +10,10 @@ public:
     mul = eigenvec * Matrix::Diag(std::sqrt(eigenval));
   }
 
+  MultivariateNormalDistribution(Vector mean, const Vector &stddev,
+                                 const Matrix &basis)
+      : mean(std::move(mean)), mul(basis * Matrix::Diag(stddev)) {}
+
   template <typename URNG> Vector operator()(URNG &&gen) {
     Vector z(mean.size());
     for (size_t i = 0; i < mean.size(); i++) {
