@@ -5,7 +5,7 @@ class CMAES : public Optimizer {
 public:
   using Optimizer::Optimizer;
   using PointWithScore = std::pair<double, Point>;
-  static constexpr double kInitialSigma = 2.0;
+  static constexpr double kInitialSigma = 5.0;
 
   void Run() override {
     std::vector<PointWithScore> points;
@@ -65,11 +65,12 @@ public:
         std::sqrt(1.0 * N) * (1 - 1 / (4. * N) + 1 / (21. * N * N));
 
     size_t counteval = 0;
+    size_t eigeneval = 0;
 
     std::mt19937 rng;
     auto evaluate_all_points = [&]() {
       points.resize(lambda);
-      MultivariateNormalDistribution dist(xmean, C * (sigma * sigma));
+      MultivariateNormalDistribution dist(xmean, D * sigma, B);
       for (size_t i = 0; i < lambda; i++) {
         points[i].second = dist(rng);
         counteval++;
@@ -126,11 +127,14 @@ public:
       sigma = sigma * std::exp((cs / damps) * (Norm(ps) / chiN - 1));
 
       // Decomposition of C.
-      // TODO: this makes the algorithm have higher complexity.
-      C = C.make_symmetric();
-      auto [eigvals, eigvecs] = C.eigs();
-      D = std::sqrt(eigvals);
-      invsqrtC = B * Matrix::Diag(1.0 / D) * B.transpose();
+      // Happens only after some number of iterations to reduce complexity.
+      if (counteval - eigeneval > lambda / (c1 + cmu) / N / 10) {
+        eigeneval = counteval;
+        C = C.make_symmetric();
+        auto [eigvals, eigvecs] = C.eigs();
+        D = std::sqrt(eigvals);
+        invsqrtC = B * Matrix::Diag(1.0 / D) * B.transpose();
+      }
     }
   }
 };

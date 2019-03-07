@@ -14,7 +14,7 @@ public:
     points.push_back({0, Point(0.0, dim)});
     for (size_t i = 0; i < dim; i++) {
       Point p(0.0, dim);
-      p[i] = 3.0;
+      p[i] = 5.0;
       points.push_back({0, p});
     }
     auto evaluate_all_points = [&]() {
