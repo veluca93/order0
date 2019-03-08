@@ -123,7 +123,7 @@ public:
     assert(M == N);
     std::valarray<bool> vec(true, N);
     for (size_t i = 0; i < N; i++) {
-      vec &= (Vector(col(i)) == Vector((*this)[i]));
+      vec &= std::abs(Vector(col(i)) - Vector((*this)[i])) < 1e-8;
     }
     return vec.min();
   }
