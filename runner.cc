@@ -73,6 +73,7 @@ double EvaluatePoint(const std::string &path, const Point &point) {
     exit(1);
   }
   if (child_status != 0) {
+    close(pipe_fds[0]);
     return 1e99;
   }
   char val_buf[1024] = {};
