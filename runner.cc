@@ -4,6 +4,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+extern char **environ;
+
 namespace {
 
 double EvaluatePoint(const std::string &path, const Point &point) {
@@ -54,14 +56,16 @@ double EvaluatePoint(const std::string &path, const Point &point) {
     args_list[i] = args[i].data();
   args_list.back() = nullptr;
 
-  std::vector<char *> environ(envs.size() + 1);
+  std::vector<char *> env_ptr;
+  for (int i = 0; environ[i] != nullptr; i++)
+    env_ptr.push_back(environ[i]);
   for (size_t i = 0; i < envs.size(); i++)
-    environ[i] = envs[i].data();
-  environ.back() = nullptr;
+    env_ptr.push_back(envs[i].data());
+  env_ptr.push_back(nullptr);
 
   int child_pid = 0;
   ret = posix_spawn(&child_pid, args_list[0], &actions, nullptr,
-                    args_list.data(), environ.data());
+                    args_list.data(), env_ptr.data());
   close(pipe_fds[1]);
   if (ret != 0) {
     close(pipe_fds[0]);
