@@ -1,5 +1,5 @@
 CXXFLAGS:=-O3 -Wall -std=c++17 -flto -g -march=native -I. -fno-exceptions \
-	-fopenmp -march=native
+	-fopenmp -march=native -Imath_utils
 LDFLAGS:=-flto -lpthread
 CXX:=g++
 
