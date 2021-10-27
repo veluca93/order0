@@ -1,6 +1,7 @@
 #include <array>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 
 #ifndef N
 #define N 2

@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 
 // Shifted to have the minimum in M_E/4,M_PI.
 
